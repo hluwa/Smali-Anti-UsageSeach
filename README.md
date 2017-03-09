@@ -4,7 +4,7 @@
 
 ## 修改Smali+生成cpp
 1. 复制一个smali文件
-2. 执行smalisafe.jar <smali文件>
+2. 执行smalisafe.jar \<smali文件\>
 3. jni/SmaliSafe.cpp已生成，smali文件已修改
 
 ## 编译so文件
