@@ -12,6 +12,13 @@
 4. 将编译生成的libs文件夹改名lib移动至apktool工程中(注:只保留需要的abi,不然会导致如：arm64位的手机找不到原apk其他so)
 5. apktool b dir 回编译
 
+
+## Usage
+` -p <Apktool Project Dir>`
+
+
+` -s <SmaliFile>`
+
 ## 建议
 1. 把java方法名，native数组名，native方法名混淆打乱。(已加入随机名)
 2. 稍微改改可以实现全工程~
