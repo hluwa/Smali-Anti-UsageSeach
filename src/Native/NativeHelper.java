@@ -5,25 +5,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import Smali.SmaliClass;
 import Smali.SmaliClass.SmaliType;
 
 public class NativeHelper {
 	public static final String LibName = "SmaliSafe";
 	public static final String SourceFileName = LibName + ".cpp";
-	
+
 	public static NativeHelper helper;
+	
+	private File SourceFile;
 	
 	private StringBuilder OnLoadCode = new StringBuilder(); 
 	
 	private ArrayList<NativeArray<JNINativeMethod>> JNIMethods = new ArrayList<NativeArray<JNINativeMethod>>(); 
 	
 	private ArrayList<NativeMethod> Methods = new ArrayList<NativeMethod>();
-	
-	private File SourceFile;
-	
-	private NativeHelper(){
-	}
 	
 	public static NativeHelper getInstance(){
 		if(helper == null){
@@ -57,9 +53,11 @@ public class NativeHelper {
 		BufferedWriter writer;
 		StringBuilder source = new StringBuilder();
 		source.append("#include <jni.h>\r\n\r\n");
+		//Ð´NatvieMethod
 		for(NativeMethod method : Methods){
 			source.append(method.getReturnType()+" "+method.getMethodName()+"("+method.getArgs()+"){\r\n"+method.getCode()+"\r\n}\r\n\r\n");
 		}
+		//Ð´JNIÓ³ÉäÊý×é
 		for(NativeArray<JNINativeMethod> jnis : JNIMethods){
 			source.append("static const JNINativeMethod "+jnis.getArrName()+"[] = {\r\n");
 			for(JNINativeMethod jni : jnis){
@@ -164,4 +162,5 @@ public class NativeHelper {
 		codes.append("    return JNI_VERSION_1_4; \r\n");
 		return codes;
 	}
+
 }

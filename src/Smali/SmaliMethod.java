@@ -1,11 +1,11 @@
 package Smali;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import Smali.SmaliModifier.ModifierAttribute;
+import Smali.SmaliModifier.ModifierPremission;
+import Smali.SmaliModifier.ModifierType;
 
 public class SmaliMethod extends SmaliObject{
 	private String methodName;
@@ -15,10 +15,13 @@ public class SmaliMethod extends SmaliObject{
 	
 	
 	//原谅我是真的不会写正则~ - -。
-	public static final String MethodRegEx = SmaliModifier.ModifierType.TYPE_METHOD.getModifierText() +" ([a-z ]{0,64}) ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
-	public static final String MethodRegEx_NotPre = SmaliModifier.ModifierType.TYPE_METHOD.getModifierText() +" ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
+	public static final String MethodRegEx = ModifierType.TYPE_METHOD.getModifierText() +" ([a-z ]{0,64}) ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
+	public static final String MethodRegEx_NotPre = ModifierType.TYPE_METHOD.getModifierText() +" ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
 	
-	public SmaliMethod(SmaliModifier premission,ArrayList<SmaliModifier> attributes,ArrayList<String> args,String returnType,String superCls,String name,int lineInFile){
+	/**
+	 * @param premission: ModifierPremission
+	 * **/
+	public SmaliMethod(ModifierPremission premission,ArrayList<ModifierAttribute> attributes,ArrayList<String> args,String returnType,String superCls,String name,int lineInFile){
 		super(premission,attributes,lineInFile);
 		this.args = args;
 		this.returnType = returnType;
@@ -26,27 +29,47 @@ public class SmaliMethod extends SmaliObject{
 		this.superClass = superCls;
 	}
 	
+	public SmaliMethod(String name,ArrayList<String> args,String returnType){
+		this(null,null,args,returnType,null,name,-1);
+	}
+	
+	/**
+	 * @return ClassName+"->"+MethodName
+	 * **/
 	public String toString(){
 		return superClass+"->"+methodName;
 	}
 	
-	public String getName(){
+	public boolean equals(SmaliMethod method){
+		if(method == null){
+			return false;
+		}
+		if(this.methodName != method.methodName){
+			return false;
+		}
+		if(!this.getMethodSig().equals(method.getMethodSig())){
+			return false;
+		}
+		return true;
+	}
+	
+	public String getMethodName(){
 		return methodName;
 	}
 	
-	public void setName(String name){
+	public void setMethodName(String name){
 		this.methodName = name;
 	}
 	
 	public boolean isSynthetic(){
-		if(getAttributes().indexOf(SmaliModifier.ModifierAttribute.ATTRIBUTE_SYNTHETIC) != -1){
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_SYNTHETIC) != -1){
 			return true;
 		}
 		return false;
 	}
 	
 	public boolean isNative(){
-		if(getAttributes().indexOf(SmaliModifier.ModifierAttribute.ATTRIBUTE_NATIVE) != -1){
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_NATIVE) != -1){
 			return true;
 		}
 		return false;
@@ -64,44 +87,39 @@ public class SmaliMethod extends SmaliObject{
 		return sig.toString();
 	}
 	
+	public String getMethodSig(){
+		StringBuilder sig =  new StringBuilder("(");
+		for(String arg : args){
+			sig.append(arg);
+		}
+		sig.append(")");
+		sig.append(returnType);
+		return sig.toString();
+	}
+	
 	public SmaliClass getReturnType(){
 		return SmaliClass.FindClass(returnType);
 	}
+
+	public SmaliClass getSuperClass(){
+		return SmaliClass.FindClass(superClass);
+	}
 	
-	public String getReturnTypeStr(){
+	public String getReturnTypeName(){
 		return returnType;
 	}
 	
-	public String getSuperClassStr(){
+	public String getSuperClassName(){
 		return superClass;
-	}
-	
-	public SmaliClass getSuperClass(){
-		return SmaliClass.FindClass(superClass);
 	}
 	
 	public void setSuperClass(String superClass){
 		this.superClass = superClass;
 	}
 	
-	public boolean equals(SmaliMethod method){
-		if(method == null){
-			return false;
-		}
-		if(this.methodName != method.methodName || !method.returnType.equals(this.returnType)){
-			return false;
-		}
-		if(method.args == null || this.args == null || method.args.size() != this.args.size()){
-			return false;
-		}
-		for(int i = 0;i<this.args.size();i++){
-			if(!this.args.get(i).equals(method.args.get(i))){
-				return false;
-			}
-		}
-		return true;
-	}
-	
+	/**
+	 * @return 成功返回0,获取代码行失败返回-1,匹配失败返回-2
+	 * **/
 	public int rename(String text){
 		String line = getSuperClass().getCodes().get(getLineInFile()).toString();
 		if(line == null){
@@ -124,8 +142,7 @@ public class SmaliMethod extends SmaliObject{
 		else{
 			getSuperClass().getCodes().set(getLineInFile(),SmaliModifier.ModifierType.TYPE_METHOD.getModifierText()+" " + text + "(" + matcher.group(2) + ")" +matcher.group(3));
 		}
-			setName(text);
-			return 0;
-		
+		setMethodName(text);
+		return 0;
 	}
 }

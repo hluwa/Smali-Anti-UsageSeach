@@ -2,19 +2,20 @@ package Smali;
 import java.util.ArrayList;
 
 import Smali.SmaliModifier.ModifierAttribute;
+import Smali.SmaliModifier.ModifierPremission;
 
 
 public class SmaliObject {
 
 	private final SmaliModifier.ModifierPremission premission;
-	private final ArrayList<SmaliModifier.ModifierAttribute> attributes = new ArrayList<SmaliModifier.ModifierAttribute>();
+	private final ArrayList<ModifierAttribute> attributes = new ArrayList<ModifierAttribute>();
 	private int lineInFile;
 	
 	
-	public SmaliObject(SmaliModifier premission,ArrayList<SmaliModifier> attributes,int lineInFile){
+	public SmaliObject(ModifierPremission premission,ArrayList<ModifierAttribute> attributes,int lineInFile){
 		this.lineInFile = lineInFile;
-		if(premission instanceof SmaliModifier.ModifierPremission){
-			this.premission = (SmaliModifier.ModifierPremission) premission;
+		if(premission != null){
+			this.premission = premission;
 		}
 		else{
 			this.premission = SmaliModifier.ModifierPremission.PREMISSION_DEFAULT;
@@ -22,13 +23,12 @@ public class SmaliObject {
 		if(attributes == null){
 			return;
 		}
-		for(SmaliModifier attribute : attributes){
-			if(attribute instanceof SmaliModifier.ModifierAttribute){
-				this.attributes.add((SmaliModifier.ModifierAttribute) attribute);
-			}
+		for(ModifierAttribute attribute : attributes){
+			this.attributes.add(attribute);
 		}
 	}
-	public SmaliModifier.ModifierPremission getPremission(){
+
+	public ModifierPremission getPremission(){
 		return premission;
 	}
 
@@ -40,25 +40,20 @@ public class SmaliObject {
 		this.lineInFile = line;
 	}
 	
-	public ArrayList<SmaliModifier.ModifierAttribute> getAttributes(){
+	public ArrayList<ModifierAttribute> getAttributes(){
 		return attributes;
 	}
 	
-
 	public boolean isStatic(){
-		for(ModifierAttribute attr : getAttributes()){
-			if(ModifierAttribute.ATTRIBUTE_STATIC.equals(attr)){
-				return true;
-			}
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_STATIC) != -1){
+			return true;
 		}
 		return false;
 	}
 	
 	public boolean isFinal(){
-		for(ModifierAttribute attr : getAttributes()){
-			if(ModifierAttribute.ATTRIBUTE_FINAL.equals(attr)){
-				return true;
-			}
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_FINAL) != -1){
+			return true;
 		}
 		return false;
 	}

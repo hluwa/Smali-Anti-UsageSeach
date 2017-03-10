@@ -89,17 +89,15 @@ public class SmaliModifier {
 		}
 	}
 	
-	
-	
 	public SmaliModifier(String modifierText){
 		this.modifierText = modifierText;
 	}
-	
-	public String toString(){
+
+	public String getModifierText(){
 		return modifierText;
 	}
 	
-	public String getModifierText(){
+	public String toString(){
 		return modifierText;
 	}
 	

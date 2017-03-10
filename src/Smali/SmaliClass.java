@@ -7,10 +7,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import Smali.SmaliModifier.ModifierAttribute;
 import Smali.SmaliModifier.ModifierPremission;
 
 public class SmaliClass extends SmaliObject{
@@ -27,11 +27,14 @@ public class SmaliClass extends SmaliObject{
 	public static class SmaliType extends SmaliClass{
 		private boolean isArr;
 		private int arrNum;
-		public SmaliType(SmaliModifier premission,ArrayList<SmaliModifier> attributes,ArrayList<SmaliField> fields,ArrayList<SmaliMethod> methods,String name,boolean isArr,int arrNum){
+
+
+		public SmaliType(ModifierPremission premission,ArrayList<ModifierAttribute> attributes,ArrayList<SmaliField> fields,ArrayList<SmaliMethod> methods,String name,boolean isArr,int arrNum){
 			super(premission,attributes,fields,methods,name,null);
 			this.isArr = isArr;
 			this.arrNum = arrNum;
 		}
+
 		public boolean isArr() {
 			return isArr;
 		}
@@ -40,10 +43,10 @@ public class SmaliClass extends SmaliObject{
 			this.isArr = isArr;
 		}
 		
-		
 		public int getArrNum() {
 			return arrNum;
 		}
+
 		public void setArrNum(int arrNum) {
 			this.arrNum = arrNum;
 		}
@@ -97,14 +100,7 @@ public class SmaliClass extends SmaliObject{
 		}
 	}
 
-	public boolean equals(SmaliClass cls){
-		if(cls == null){
-			return false;
-		}
-		return cls.toString() == this.toString();
-	}
-	
-	public SmaliClass(SmaliModifier premission,ArrayList<SmaliModifier> attributes,ArrayList<SmaliField> fields,ArrayList<SmaliMethod> methods,String name,File classFile){
+	public SmaliClass(ModifierPremission premission,ArrayList<ModifierAttribute> attributes,ArrayList<SmaliField> fields,ArrayList<SmaliMethod> methods,String name,File classFile){
 		super(premission,attributes,0);
 		this.ClassName = name;
 		this.fields = fields;
@@ -114,6 +110,17 @@ public class SmaliClass extends SmaliObject{
 	
 	public String toString(){
 		return ClassName;
+	}
+
+	public boolean equals(SmaliClass cls){
+		if(cls == null){
+			return false;
+		}
+		return cls.toString() == this.toString();
+	}
+	
+	public ArrayList<SmaliField> getFields(){
+		return fields;
 	}
 	
 	public BufferedWriter getWriter(){
@@ -163,6 +170,70 @@ public class SmaliClass extends SmaliObject{
 	public ArrayList<SmaliMethod> getMethods(){
 		return methods;
 	}
+
+	public File getClassFile(){
+		return classFile;
+	}
+
+	public ArrayList<SmaliMethod> getInvokeMethodList(){
+		ArrayList<SmaliMethod> list = new ArrayList<SmaliMethod>();
+		for(String line : getCodes()){
+			line = line.trim();
+			String[] sp = line.split(" ");
+			if(sp[0].indexOf("invoke") != -1){
+				//正则匹配 (类名)->(方法名)((参数列表))(返回类型),看到这表达式的请文明吐槽.......
+				Pattern pattern = Pattern.compile("([a-zA-Z0-9/_$]{0,128});->([0-9a-zA-Z_$]{0,128})\\(([a-zA-Z0-9/_$;]{0,512})\\)([a-zA-Z0-9/_$;]{0,128})");
+				Matcher matcher = pattern.matcher(line);
+				if(matcher.find()){
+					String superClass = matcher.group(1);
+					String returnType;
+					SmaliMethod method;
+					ArrayList<String> args = SmaliUtils.PraseMethodArgs(matcher.group(3));
+					returnType = matcher.group(4);
+					method = new SmaliMethod(ModifierPremission.PREMISSION_DEFAULT,null,args,returnType,superClass,matcher.group(2),-1);
+					list.add(method);
+				}
+			}
+		}
+		return list;
+	}
+	
+	public int addMethod(SmaliMethod method,String smaliCode){
+		if(method == null){
+			return -1;
+		}
+		method.setLineInFile(codeLines.size()+2);
+		StringBuilder builder = new StringBuilder();
+		ArrayList<String> codeLines = getCodes();
+		codeLines.add("");
+		builder.append(SmaliModifier.ModifierType.TYPE_METHOD+" ");
+		builder.append(method.getPremission().toString()+" ");
+		if(method.getAttributes() != null && method.getAttributes().size() != 0){
+			for(SmaliModifier modifier : method.getAttributes()){
+				builder.append(modifier.getModifierText() + " ");
+			}
+		}
+		builder.append(method.getMethodName()+"(");
+		if(method.getArgs() != null){
+			for(String type : method.getArgs()){
+				builder.append(type.toString());
+			}
+		}
+		builder.append(")");
+		builder.append(method.getReturnTypeName());
+		codeLines.add(builder.toString());
+		String[] smaliLines = smaliCode.split("\r\n");
+		for(String line : smaliLines){
+			codeLines.add(line);
+		}
+		codeLines.add(".end method");
+		this.codeLines = codeLines;
+		method.setSuperClass(this.toString());
+		methods.add(method);
+		
+		return 0;
+		
+	}
 	
 	public int saveChange(){
 		try {
@@ -202,91 +273,15 @@ public class SmaliClass extends SmaliObject{
 		writer = null;
 	}
 	
-	public File getClassFile(){
-		return classFile;
+	public SmaliMethod findMethod(SmaliMethod method){
+		for(SmaliMethod m : methods){
+			if(m.equals(method)){
+				return m;
+			}
+		}
+		return null;
 	}
 
-	public int addMethod(SmaliMethod method,String smaliCode){
-		if(method == null){
-			return -1;
-		}
-		method.setLineInFile(codeLines.size()+2);
-		StringBuilder builder = new StringBuilder();
-		ArrayList<String> codeLines = getCodes();
-		codeLines.add("");
-		builder.append(SmaliModifier.ModifierType.TYPE_METHOD+" ");
-		builder.append(method.getPremission().toString()+" ");
-		if(method.getAttributes() != null && method.getAttributes().size() != 0){
-			for(SmaliModifier modifier : method.getAttributes()){
-				builder.append(modifier.getModifierText() + " ");
-			}
-		}
-		builder.append(method.getName()+"(");
-		if(method.getArgs() != null){
-			for(String type : method.getArgs()){
-				builder.append(type.toString());
-			}
-		}
-		builder.append(")");
-		builder.append(method.getReturnTypeStr());
-		codeLines.add(builder.toString());
-		String[] smaliLines = smaliCode.split("\r\n");
-		for(String line : smaliLines){
-			codeLines.add(line);
-		}
-		codeLines.add(".end method");
-		this.codeLines = codeLines;
-		method.setSuperClass(this.toString());
-		methods.add(method);
-		
-		return 0;
-		
-	}
-	
-	public ArrayList<SmaliMethod> getInvokeMethodList(){
-		ArrayList<SmaliMethod> list = new ArrayList<SmaliMethod>();
-		for(String line : getCodes()){
-			line = line.trim();
-			String[] sp = line.split(" ");
-			if(sp[0].indexOf("invoke") != -1){
-				
-				//正则匹配 (类名)->(方法名)((参数列表))(返回类型),看到这表达式的请文明吐槽.......
-				Pattern pattern = Pattern.compile("([a-zA-Z0-9/_$]{0,128});->([0-9a-zA-Z_$]{0,128})\\(([a-zA-Z0-9/_$;]{0,512})\\)([a-zA-Z0-9/_$;]{0,128})");
-				Matcher matcher = pattern.matcher(line);
-				if(matcher.find()){
-					String superClass = matcher.group(1);
-					String returnType;
-					SmaliMethod method;
-					ArrayList<String> args = SmaliUtils.PraseMethodArgs(matcher.group(3));
-					//if(matcher.group(4).startsWith("L")){
-						returnType = matcher.group(4);
-					//}
-					//else{
-						//returnType = SmaliType.GetBaseType(matcher.group(4).charAt(0));
-					//}
-					//if(returnType == null){
-						//System.out.println("[*MethodReturnTypeNotFound]: " + matcher.group(4));
-						//returnType = new SmaliClass(null,null,null,null,matcher.group(4),null);
-					//}
-					//if(superClass == null){
-						//System.out.println("[*MethodSuperClassNotFound]： " + matcher.group(1));
-						//superClass = new SmaliClass(null,null,null,null,matcher.group(1),null);
-						//method = new SmaliMethod(SmaliModifier.ModifierPremission.PREMISSION_DEFAULT,null,args,returnType,superClass,matcher.group(2),-1);
-					//}
-					//else{
-						//method = superClass.findMethod(new SmaliMethod(null,null,args,returnType,null,matcher.group(2),-1));
-						//if(method == null){
-							method = new SmaliMethod(SmaliModifier.ModifierPremission.PREMISSION_DEFAULT,null,args,returnType,superClass,matcher.group(2),-1);
-						//}
-					//}
-							list.add(method);
-				}
-			}
-		}
-		return list;
-	}
-	
-	
 	public static SmaliClass FindClass(String cls){
 		if(cls == null){
 			return null;
@@ -299,12 +294,4 @@ public class SmaliClass extends SmaliObject{
 		return null;
 	}
 
-	public SmaliMethod findMethod(SmaliMethod method){
-		for(SmaliMethod m : methods){
-			if(m.equals(method)){
-				return m;
-			}
-		}
-		return null;
-	}
 }

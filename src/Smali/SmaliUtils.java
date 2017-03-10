@@ -15,60 +15,29 @@ public class SmaliUtils {
 	public static ArrayList<String> PraseMethodArgs(String text){
 		ArrayList<String> args = new ArrayList<String>();
 		char[] c = text.toCharArray();
-
 		int index = text.indexOf("L");
+		
 		if(index != -1){
-			for(int i = 0 ;i <index ;i++){
-				//SmaliClass cls = SmaliClass.SmaliType.GetBaseType(c[i]);
-				//if(cls == null){
-					//System.out.println("[*MethodArgBaseTypeNotFound]: "+c[i]);
-				//}else{
+			for(int i = 0; i <index; i++){
 				int i1 = i;
 				if(c[i] != '['){
 					String arg = String.valueOf(c[i]);
-					while(i1 >0 && c[i1-1]== '['){
-							arg = "[" + arg;
-							i1--;
-						}
-						args.add(arg);	
-					}						
-				}
-					
-				//}
-			}
-			int endIndex = -1;
-			while(index != -1){
-				endIndex = text.indexOf(";",index);
-				String clsName = text.substring(index, endIndex+1);
-				//SmaliClass cls = SmaliClass.FindClass(clsName);
-				//if(cls == null){
-					//System.out.println("[*MethodArgTypeNotFound]: " + clsName);
-				//}
-				//else{
-					args.add(clsName);
-				//}
-				index = text.indexOf("L",endIndex);
-				if(index - endIndex > 1){
-					for(int i = endIndex+1 ; i<index;i++){
-						//cls = SmaliClass.SmaliType.GetBaseType(c[i]);
-						//if(cls == null){
-							//System.out.println("[*MethodArgBaseTypeNotFound]: "+c[i]);
-						//}else{
-						int i1 = i;
-						if(c[i] != '['){
-							String arg = String.valueOf(c[i]);
-							while(i1 >0 && c[i1-1]== '['){
-									arg = "[" + arg;
-									i1--;
-								}
-								args.add(arg);	
-							}						
-						}
-						//}
+					while(i1 > 0 && c[i1-1] == '['){
+						arg = "[" + arg;
+						i1--;
 					}
-				}
-			if(endIndex != -1 && endIndex < c.length-1){
-				for(int i = endIndex+1 ; i<c.length;i++){
+					args.add(arg);	
+				}						
+			}
+		}
+		int endIndex = -1;
+		while(index != -1){
+			endIndex = text.indexOf(";",index);
+			String clsName = text.substring(index, endIndex+1);
+			args.add(clsName);
+			index = text.indexOf("L",endIndex);
+			if(index - endIndex > 1){
+				for(int i = endIndex + 1 ;i < index; i++){
 					int i1 = i;
 					if(c[i] != '['){
 						String arg = String.valueOf(c[i]);
@@ -80,6 +49,20 @@ public class SmaliUtils {
 					}						
 				}
 			}
+		}
+		if(endIndex != -1 && endIndex < c.length-1){
+			for(int i = endIndex+1; i < c.length; i++){
+				int i1 = i;
+				if(c[i] != '['){
+					String arg = String.valueOf(c[i]);
+					while(i1 >0 && c[i1-1]== '['){
+						arg = "[" + arg;
+						i1--;
+					}
+					args.add(arg);	
+				}						
+			}
+		}
 		return args;
 	}
 
@@ -92,24 +75,24 @@ public class SmaliUtils {
 			return null;
 		}
 		String line;
+		String className = "";
 		int lineInFile = 0;
 		ModifierPremission premission = ModifierPremission.PREMISSION_DEFAULT;
-		ArrayList<SmaliModifier> attributes = new ArrayList<SmaliModifier>();
+		ArrayList<ModifierAttribute> attributes = new ArrayList<ModifierAttribute>();
 		ArrayList<SmaliField> fields = new ArrayList<SmaliField>();
 		ArrayList<SmaliMethod> methods = new ArrayList<SmaliMethod>();
-		String className = "";
 		try {
 			while((line = reader.readLine()) != null){
 				line = line.trim();
 				if(line.startsWith(ModifierType.TYPE_CLASS.getModifierText())){
-					String[] sp = line.split(" ");
-					premission= ModifierPremission.Get(sp[1]);
-					for(int i = 2;i < sp.length - 1 ;i++){
-						attributes.add(SmaliModifier.ModifierAttribute.Get(sp[i]));
+					String[] sp = line.split(" ");  //sp[] = {".class",Premission,{Attributes},ClassName}
+					premission = ModifierPremission.Get(sp[1]);
+					for(int i = 2;i < sp.length - 1;i++){ 
+						attributes.add(ModifierAttribute.Get(sp[i]));
 					}
 					className = sp[sp.length-1];
 				}
-				/*暂时用不到field
+				/*暂时用不到field,待补全
 				if(line.startsWith(SmaliModifier.ModifierType.TYPE_FIELD.getModifierText())){
 					String[] sp = line.split(" ");
 					SmaliModifier.ModifierPremission fieldPremission = SmaliModifier.ModifierPremission.Get(sp[0]);
@@ -122,9 +105,9 @@ public class SmaliUtils {
 				}*/
 				
 				if(line.startsWith(ModifierType.TYPE_METHOD.getModifierText())){
-					String[] sp = line.split(" ");
+					String[] sp = line.split(" ");	//sp[] = {".method",Premission,{Attributes},MethodName+MethodSig}
 					ModifierPremission methodPremission= ModifierPremission.Get(sp[1]);
-					ArrayList<SmaliModifier> methodAttributes = new ArrayList<SmaliModifier>();
+					ArrayList<ModifierAttribute> methodAttributes = new ArrayList<ModifierAttribute>();
 					for(int i = 2;i < sp.length - 1 ;i++){
 						methodAttributes.add(ModifierAttribute.Get(sp[i]));
 					}
@@ -137,6 +120,7 @@ public class SmaliUtils {
 				}
 				lineInFile++;
 			}
+			reader.close();
 			return new SmaliClass(premission,attributes,fields,methods,className,file);
 		} catch (IOException e) {
 			System.out.println("[*PraseClassError]IOException: " + e.toString());
