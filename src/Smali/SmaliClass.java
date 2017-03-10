@@ -241,8 +241,11 @@ public class SmaliClass extends SmaliObject{
 				writer.close();
 				writer = null;
 			}
+			if(this.codeLines == null){
+				return 0;
+			}
 			writer = getWriter();
-			for(String tmp : codeLines){
+			for(String tmp : getCodes()){
 				writer.write(tmp+"\r\n");
 			}
 			writer.flush();

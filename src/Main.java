@@ -14,12 +14,74 @@ import Smali.SmaliUtils;
 public class Main {
 	public static void main(String args[]){
 		
+		if(args[0].equals("-p")){
+			SafeProject(new File(args[1]));
+		}
+		else if(args[0].equals("-s")){
+			SafeSmali(new File(args[1]));
+		}
+		
+		
+	}
+	
+	public static void SafeSmali(File smaliFile){
 		//解析Smali为SmaliClass类
-		SmaliClass cls = SmaliUtils.PraseClass(new File(args[0]));
+		SmaliClass cls = SmaliUtils.PraseClass(smaliFile);
 		if(cls == null){
 			return;
 		}
 		SmaliClass.ClassTable.add(cls);
+		ChangeSmali(cls);
+		AddClinit(cls);
+		cls.saveChange();
+		NativeHelper helper = NativeHelper.getInstance();
+		helper.setOnLoadCode(helper.createOnLoadCode());
+		helper.writeSource();
+	}
+
+	public static void SafeProject(File projectDir){
+		File maniFile = new File(projectDir.toString() + "\\AndroidManifest.xml");
+		if(!maniFile.exists()){
+			System.out.println("[*SafeProjectError]AndroidManifest.xml is not found");
+			return;
+		}
+		String mainClassName = Utils.FindMainClass(maniFile);
+		if(mainClassName == null){
+			System.out.println("[*SafeProjectError]Launcher Class is not found");
+			return;
+		}
+		ArrayList<File> files = Utils.GetInDirFiles(new File(projectDir.toString() +"\\smali\\"));
+		if(files == null){
+			System.out.println("[*SafeProjectError]Files is null");
+			return;
+		}
+		
+		for(File file : files){
+			SmaliClass cls = SmaliUtils.PraseClass(file);
+			if(cls == null){
+				continue;
+			}
+			if(cls.toString().startsWith("Landroid")){
+				continue;
+			}
+			SmaliClass.ClassTable.add(cls);
+			System.out.println("[I:ChangeSmali]: " + cls.toString());
+			ChangeSmali(cls);
+			String className = cls.toString();
+			className = className.startsWith("L") ? className.substring(1,className.length()-1) : className;
+			className = className.endsWith(";") ? className.substring(0,className.length()-1) : className;
+			className = className.replace("/",".");
+			if(mainClassName.equals(className)){
+				AddClinit(cls);
+			}
+			cls.saveChange();
+		}
+		NativeHelper helper = NativeHelper.getInstance();
+		helper.setOnLoadCode(helper.createOnLoadCode());
+		helper.writeSource();
+	}
+	
+	public static void ChangeSmali(SmaliClass cls){
 		String methodArrayName = Utils.GetRandomMethodName(0);  //改随机名
 		NativeHelper helper = NativeHelper.getInstance();
 		NativeArray<JNINativeMethod> array = new NativeArray<JNINativeMethod>(cls.toString(),methodArrayName);
@@ -46,7 +108,12 @@ public class Main {
 		for(SmaliMethod method : addMethod){
 			cls.addMethod(method, "");
 		}
+		helper.addJNIMethod(array);
+	}
+
+	public static void AddClinit(SmaliClass cls){
 		ArrayList<ModifierAttribute> attr = new ArrayList<ModifierAttribute>();
+		attr.add(ModifierAttribute.ATTRIBUTE_STATIC);
 		attr.add(ModifierAttribute.ATTRIBUTE_CONSTRUCTOR);
 		SmaliMethod clinit = new SmaliMethod(ModifierPremission.PREMISSION_DEFAULT,attr,new ArrayList<String>(),"V",cls.toString(),"<clinit>",-1);
 		StringBuilder codes = new StringBuilder();
@@ -57,9 +124,10 @@ public class Main {
 			codes.append("    return-void\r\n");
 			cls.addMethod(clinit, codes.toString());
 		}
-		cls.saveChange();
-		helper.addJNIMethod(array);
-		helper.setOnLoadCode(helper.createOnLoadCode());
-		helper.writeSource();
+		else{
+			clinit = cls.findMethod(clinit);
+			clinit.addLineCodeToEnd("   const-string v0,\"smalisafe\"");
+			clinit.addLineCodeToEnd("    invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V");
+		}
 	}
 }

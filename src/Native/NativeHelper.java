@@ -59,6 +59,9 @@ public class NativeHelper {
 		}
 		//Ð´JNIÓ³ÉäÊý×é
 		for(NativeArray<JNINativeMethod> jnis : JNIMethods){
+			if(jnis.size() == 0){
+				continue;
+			}
 			source.append("static const JNINativeMethod "+jnis.getArrName()+"[] = {\r\n");
 			for(JNINativeMethod jni : jnis){
 				source.append("    {\""+jni.getJavaMethodName()+"\", \""+jni.getMethodSig()+"\", ("+jni.getReturnType()+"*)"+jni.getNativeMethodName()+"},\r\n");
@@ -85,50 +88,28 @@ public class NativeHelper {
 			arrNum ++;
 			index++;
 		}
-		if(arrNum > 1){
+		if(arrNum > 0){
 			return "jobject";
 		}
-		smaliType = smaliType.substring(arrNum);
 		if(SmaliType.B.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jbyteArray";
-			}
 			return "jbyte";
 		}
 		else if(SmaliType.C.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jcharArray";
-			}
 			return "jchar";
 		}
 		else if(SmaliType.D.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jdoubeArray";
-			}
-			return "jdoube";
+			return "jdouble";
 		}
 		else if(SmaliType.F.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jfloatArray";
-			}
 			return "jfloat";
 		}
 		else if(SmaliType.I.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jintArray";
-			}
 			return "jint";
 		}
 		else if(SmaliType.J.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jlongArray";
-			}
 			return "jlong";
 		}
 		else if(SmaliType.S.toString().equals(smaliType)){
-			if(arrNum == 1){
-				return "jshortArray";
-			}
 			return "jshort";
 		}
 		else if(SmaliType.V.toString().equals(smaliType)){
@@ -136,9 +117,6 @@ public class NativeHelper {
 		}
 		else if(SmaliType.Z.toString().equals(smaliType)){
 			return "jboolean";
-		}
-		if(arrNum == 1){
-			return "jobjectArray";
 		}
 		return "jobject";
 	}
@@ -149,6 +127,9 @@ public class NativeHelper {
 		codes.append("    jclass cls; \r\n");
 		codes.append("    vm->GetEnv((void**)&env, JNI_VERSION_1_4); \r\n");
 		for(NativeArray<JNINativeMethod> array : JNIMethods){
+			if(array.size() == 0){
+				continue;
+			}
 			String clsName = array.getClassName();
 			if(clsName.startsWith("L")){
 				clsName = clsName.substring(1, clsName.length()-1);

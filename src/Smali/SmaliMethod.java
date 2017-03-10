@@ -13,10 +13,9 @@ public class SmaliMethod extends SmaliObject{
 	private String superClass;
 	private String returnType;
 	
-	
 	//原谅我是真的不会写正则~ - -。
-	public static final String MethodRegEx = ModifierType.TYPE_METHOD.getModifierText() +" ([a-z ]{0,64}) ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
-	public static final String MethodRegEx_NotPre = ModifierType.TYPE_METHOD.getModifierText() +" ([a-zA-Z0-9_$<>]{0,64})\\(([a-zA-Z0-9_$;/]{0,512})\\)([a-zA-Z0-9_$;/]{0,64})";
+	public static final String MethodRegEx = ModifierType.TYPE_METHOD.getModifierText() +" ([a-z ]{0,64}) ([a-zA-Z0-9_$<>]{0,128})\\(([a-zA-Z0-9_$;/\\[]{0,512})\\)([a-zA-Z0-9_$;/\\[]{0,256})";
+	public static final String MethodRegEx_NotPre = ModifierType.TYPE_METHOD.getModifierText() +" ([a-zA-Z0-9_$<>]{0,128})\\(([a-zA-Z0-9_$;\\[/]{0,512})\\)([a-zA-Z0-9_$;/\\[]{0,256})";
 	
 	/**
 	 * @param premission: ModifierPremission
@@ -44,7 +43,7 @@ public class SmaliMethod extends SmaliObject{
 		if(method == null){
 			return false;
 		}
-		if(this.methodName != method.methodName){
+		if(!this.methodName.equals(method.methodName)){
 			return false;
 		}
 		if(!this.getMethodSig().equals(method.getMethodSig())){
@@ -144,5 +143,15 @@ public class SmaliMethod extends SmaliObject{
 		}
 		setMethodName(text);
 		return 0;
+	}
+	
+	public void addLineCodeToEnd(String code){
+		int startLine = getLineInFile();
+		ArrayList<String> codes = getSuperClass().getCodes();
+		while(!codes.get(startLine + 1).equals(ModifierType.TYPE_METHOD_END.toString())){
+			startLine++;	
+		}
+		codes.add(startLine,code);
+		setOverAddLine(startLine);
 	}
 }

@@ -10,6 +10,8 @@ public class SmaliObject {
 	private final SmaliModifier.ModifierPremission premission;
 	private final ArrayList<ModifierAttribute> attributes = new ArrayList<ModifierAttribute>();
 	private int lineInFile;
+	private int overAddLine = 0;
+	public int lineOffset = 0;
 	
 	
 	public SmaliObject(ModifierPremission premission,ArrayList<ModifierAttribute> attributes,int lineInFile){
@@ -18,7 +20,7 @@ public class SmaliObject {
 			this.premission = premission;
 		}
 		else{
-			this.premission = SmaliModifier.ModifierPremission.PREMISSION_DEFAULT;
+			this.premission = ModifierPremission.PREMISSION_DEFAULT;
 		}
 		if(attributes == null){
 			return;
@@ -31,8 +33,19 @@ public class SmaliObject {
 	public ModifierPremission getPremission(){
 		return premission;
 	}
+	
+	public int getOverAddLine() {
+		return overAddLine;
+	}
+
+	public void setOverAddLine(int overAddLine) {
+		this.overAddLine = overAddLine;
+	}
 
 	public int getLineInFile(){
+		if(lineInFile > overAddLine){
+			return lineInFile + lineOffset;	
+		}
 		return lineInFile;
 	}
 	

@@ -44,6 +44,7 @@ public class NativeMethod {
 		StringBuilder args = new StringBuilder("JNIEnv *env, jobject obj");
 		StringBuilder codes = new StringBuilder("    jclass cls = env->GetObjectClass(obj);\r\n");
 		String isStatic = "";
+		String classId = "obj";
 		StringBuilder callBackArgs = new StringBuilder();
 		ArrayList<String> smaliArgs = srcSmaliMethod.getArgs();
 		for(int i = 0;i < smaliArgs.size() ;i++){
@@ -61,23 +62,42 @@ public class NativeMethod {
 		}
 		if(srcSmaliMethod.isStatic()){
 			isStatic = "Static";
+			classId = "cls";
 		}
 		codes.append("    jmethodID callback = env->Get" + isStatic + "MethodID(cls,\"" + srcSmaliMethod.getMethodName() + "\",\"(" + srcSmaliMethod.getArgsSig()+")" + srcSmaliMethod.getReturnTypeName() + "\");\r\n");
 		codes.append("    ");
 		if(!srcSmaliMethod.getReturnTypeName().equals(SmaliType.V.toString())){
+			String type = "Object";
 			if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.Z.toString())){
-				codes.append("return ");
-				codes.append("(jboolean)env->Call" + isStatic + "BooleanMethod(obj,callback" + callBackArgs + ");");
+				type = "Boolean";
 			}
-			else
-			{
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.I.toString())){
+				type = "Int";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.B.toString())){
+				type = "Byte";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.C.toString())){
+				type = "Char";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.D.toString())){
+				type = "Double";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.F.toString())){
+				type = "Float";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.J.toString())){
+				type = "Long";
+			}
+			else if(srcSmaliMethod.getReturnTypeName().equals(SmaliType.S.toString())){
+				type = "Short";
+			}
 			codes.append("return ");
-			codes.append("(" + NativeHelper.SmaliType2NativeType(srcSmaliMethod.getReturnTypeName()) + ")env->Call" + isStatic + "ObjectMethod(obj,callback" + callBackArgs + ");");
-			}
+			codes.append("(" + NativeHelper.SmaliType2NativeType(srcSmaliMethod.getReturnTypeName()) + ")env->Call" + isStatic + type + "Method("+ classId +",callback" + callBackArgs + ");");
 		}
 		
 		else{
-			codes.append("env->Call" + isStatic + "VoidMethod(obj,callback" + callBackArgs+");");
+			codes.append("env->Call" + isStatic + "VoidMethod(" + classId + ",callback" + callBackArgs+");");
 		}
 		NativeMethod nativeMethod = new NativeMethod(NativeHelper.SmaliType2NativeType(srcSmaliMethod.getReturnTypeName()),navtiveMethodName,args.toString(),codes);
 		return nativeMethod;
