@@ -19,11 +19,14 @@
 
 ` -s <SmaliFile>`
 
+
 ## 建议
-1. 把java方法名，native数组名，native方法名混淆打乱。(已加入随机名)
-2. 稍微改改可以实现全工程~
+1. 把java方法名，native数组名，native方法名混淆打乱。(Added)
+2. 稍微改改可以实现全工程~ (Added)
+3. 添加包名过滤
 
 # 已知问题：
 1. smali中已存在clinit的话要自己手动添加load (已Fix，待上传)
 2. 性能损耗未知........
+3. 使用SafeProject会造成N种问题...所以待添加过滤。
 3. 待添加。
