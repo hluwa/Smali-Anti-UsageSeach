@@ -15,19 +15,29 @@
 
 ## Usage
 ` -p <Apktool Project Dir>`
-
-
+  `--f <PageName>`
+  
 ` -s <SmaliFile>`
 
 
 ## 建议
 1. 把java方法名，native数组名，native方法名混淆打乱。(Added)
 2. 稍微改改可以实现全工程~ (Added)
-3. 添加包名过滤
+3. 添加包名过滤<Added>
 
-# 已知问题：
+## 已知问题：
 1. smali中已存在clinit的话要自己手动添加load (Fixed)
 2. 性能损耗未知........
-3. 使用SafeProject会造成N种问题,如：方法太多so库太大，调用太多无法回编...所以待添加过滤。
-4. 坑点太多。准备换种方式
+3. 使用SafeProject会造成N种问题,如：方法太多so库太大，调用太多无法回编...所以待添加过滤。<Fixed>
+4. 调用太多无法回编可以试试多Dex。
 4. 待添加。
+
+##Sample
+[酷安(+字符串混淆)](http://www.hoimk.com/usr/uploads/2017/03/2197925685.apk)
+
+
+## 效果图：
+以下是smalisafe.jar -p coolapk --f com.coolapk.market.view.main后的处理结果
+
+![](http://i1.piimg.com/1949/038d71238bcb9a7b.png)
+![](http://i1.piimg.com/1949/b3aa41ce2a187338.png)
