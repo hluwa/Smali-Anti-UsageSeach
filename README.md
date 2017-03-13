@@ -20,10 +20,12 @@
 ` -s <SmaliFile>`
 
 
-## 建议
+## 想法
 1. 把java方法名，native数组名，native方法名混淆打乱。(Added)
 2. 稍微改改可以实现全工程~ (Added)
 3. 添加包名过滤(Added)
+4. 加入随机参数
+5. 方法路径保护
 ## 已知问题：
 1. smali中已存在clinit的话要自己手动添加load (Fixed)
 2. 性能损耗未知........
@@ -33,7 +35,7 @@
 
 ##Sample
 [酷安(+字符串混淆)](http://www.hoimk.com/usr/uploads/2017/03/2197925685.apk)
-
+(不要问我字符串混淆哪来的,https://github.com/Qrilee/obfuseSmaliText)
 
 ## 效果图：
 以下是smalisafe.jar -p coolapk --f com.coolapk.market.view.main后的处理结果
