@@ -19,13 +19,14 @@
   
 ` -s <SmaliFile>`
 
-
 ## 想法
 1. 把java方法名，native数组名，native方法名混淆打乱。(Added)
 2. 稍微改改可以实现全工程~ (Added)
 3. 添加包名过滤(Added)
 4. 加入随机参数
 5. 方法路径保护
+
+
 ## 已知问题：
 1. smali中已存在clinit的话要自己手动添加load (Fixed)
 2. 性能损耗未知........
