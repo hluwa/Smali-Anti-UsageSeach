@@ -34,6 +34,8 @@ public class SmaliModifier {
 		public static final ModifierAttribute ATTRIBUTE_SYNTHETIC = new ModifierAttribute("synthetic");
 		public static final ModifierAttribute ATTRIBUTE_NATIVE = new ModifierAttribute("native");
 		public static final ModifierAttribute ATTRIBUTE_CONSTRUCTOR = new ModifierAttribute("constructor");
+		public static final ModifierAttribute ATTRIBUTE_INTERFACE = new ModifierAttribute("interface");
+		public static final ModifierAttribute ATTRIBUTE_ABSTRACT = new ModifierAttribute("abstract");
 		public static ModifierAttribute Get(String text){
 			if(text.equals(ATTRIBUTE_STATIC.getModifierText())){
 				return ATTRIBUTE_STATIC;
@@ -49,6 +51,12 @@ public class SmaliModifier {
 			}
 			else if(text.endsWith(ATTRIBUTE_CONSTRUCTOR.getModifierText())){
 				return ATTRIBUTE_CONSTRUCTOR;
+			}
+			else if(text.endsWith(ATTRIBUTE_INTERFACE.getModifierText())){
+				return ATTRIBUTE_INTERFACE;
+			}
+			else if(text.endsWith(ATTRIBUTE_ABSTRACT.getModifierText())){
+				return ATTRIBUTE_ABSTRACT;
 			}
 			return new ModifierAttribute(text);
 		}

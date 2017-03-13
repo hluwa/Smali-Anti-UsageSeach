@@ -53,6 +53,15 @@ public class NativeHelper {
 		BufferedWriter writer;
 		StringBuilder source = new StringBuilder();
 		source.append("#include <jni.h>\r\n\r\n");
+		
+		//结构体
+		
+		source.append("struct Regnative{ \r\n");
+		source.append("    char* className; \r\n");
+		source.append("    int size; \r\n");
+		source.append("    JNINativeMethod* method;");
+		source.append("};\r\n\r\n");
+		
 		//写NatvieMethod
 		for(NativeMethod method : Methods){
 			source.append(method.getReturnType()+" "+method.getMethodName()+"("+method.getArgs()+"){\r\n"+method.getCode()+"\r\n}\r\n\r\n");
@@ -62,13 +71,31 @@ public class NativeHelper {
 			if(jnis.size() == 0){
 				continue;
 			}
-			source.append("static const JNINativeMethod "+jnis.getArrName()+"[] = {\r\n");
+			source.append("static JNINativeMethod "+jnis.getArrName()+"[] = {\r\n");
 			for(JNINativeMethod jni : jnis){
 				source.append("    {\""+jni.getJavaMethodName()+"\", \""+jni.getMethodSig()+"\", ("+jni.getReturnType()+"*)"+jni.getNativeMethodName()+"},\r\n");
 			}
 			source.append("};\r\n\r\n");
 		}
-		source.append("JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved){\r\n" + OnLoadCode + "\r\n}");
+		
+		//写关联数组
+		source.append("static const  Regnative reg[] = { \r\n");
+		for(NativeArray<JNINativeMethod> array : JNIMethods){
+			if(array.size() == 0){
+				continue;
+			}
+			String clsName = array.getClassName();
+			if(clsName.startsWith("L")){
+				clsName = clsName.substring(1, clsName.length()-1);
+			}
+			if(clsName.endsWith(";")){
+				clsName = clsName.substring(0,clsName.length()-1);
+			}
+
+			source.append("         {\"" + clsName + "\"," + array.size() + "," + array.getArrName() + "}, \r\n");
+		}
+		
+		source.append("};\r\n\r\nJNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved){\r\n" + OnLoadCode + "\r\n}");
 		try {
 			 writer = new BufferedWriter(new FileWriter(SourceFile));
 			 writer.write(source.toString());
@@ -126,21 +153,10 @@ public class NativeHelper {
 		codes.append("    JNIEnv* env; \r\n");
 		codes.append("    jclass cls; \r\n");
 		codes.append("    vm->GetEnv((void**)&env, JNI_VERSION_1_4); \r\n");
-		for(NativeArray<JNINativeMethod> array : JNIMethods){
-			if(array.size() == 0){
-				continue;
-			}
-			String clsName = array.getClassName();
-			if(clsName.startsWith("L")){
-				clsName = clsName.substring(1, clsName.length()-1);
-			}
-			if(clsName.endsWith(";")){
-				clsName = clsName.substring(0,clsName.length()-1);
-			}
-			codes.append("    cls = env->FindClass(\""+clsName+"\"); \r\n");
-			codes.append("    env->RegisterNatives(cls,"+array.getArrName()+",sizeof("+array.getArrName()+")/sizeof("+array.getArrName()+"[0])); \r\n");
-		}
-		codes.append("    return JNI_VERSION_1_4; \r\n");
+		codes.append("    for(int i = 0; i < sizeof(reg)/sizeof(Regnative);i++ ) {\r\n");
+		codes.append("        cls = env->FindClass(reg[i].className);\r\n");
+		codes.append("        env->RegisterNatives(cls, reg[i].method,reg[i].size);\r\n");
+		codes.append("    }\r\nreturn JNI_VERSION_1_4;\r\n");
 		return codes;
 	}
 

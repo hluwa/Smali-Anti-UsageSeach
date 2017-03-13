@@ -29,15 +29,28 @@ public class SmaliUtils {
 					args.add(arg);	
 				}						
 			}
-		}
-		int endIndex = -1;
-		while(index != -1){
-			endIndex = text.indexOf(";",index);
-			String clsName = text.substring(index, endIndex+1);
-			args.add(clsName);
-			index = text.indexOf("L",endIndex);
-			if(index - endIndex > 1){
-				for(int i = endIndex + 1 ;i < index; i++){
+			int endIndex = -1;
+			while(index != -1){
+				endIndex = text.indexOf(";",index);
+				String clsName = text.substring(index, endIndex+1);
+				args.add(clsName);
+				index = text.indexOf("L",endIndex);
+				if(index - endIndex > 1){
+					for(int i = endIndex + 1 ;i < index; i++){
+						int i1 = i;
+						if(c[i] != '['){
+							String arg = String.valueOf(c[i]);
+							while(i1 >0 && c[i1-1]== '['){
+								arg = "[" + arg;
+								i1--;
+							}
+							args.add(arg);	
+						}						
+					}
+				}
+			}
+			if(endIndex != -1 && endIndex < c.length-1){
+				for(int i = endIndex+1; i < c.length; i++){
 					int i1 = i;
 					if(c[i] != '['){
 						String arg = String.valueOf(c[i]);
@@ -50,8 +63,8 @@ public class SmaliUtils {
 				}
 			}
 		}
-		if(endIndex != -1 && endIndex < c.length-1){
-			for(int i = endIndex+1; i < c.length; i++){
+		else{
+			for(int i = 0; i < c.length; i++){
 				int i1 = i;
 				if(c[i] != '['){
 					String arg = String.valueOf(c[i]);
@@ -63,6 +76,7 @@ public class SmaliUtils {
 				}						
 			}
 		}
+		
 		return args;
 	}
 

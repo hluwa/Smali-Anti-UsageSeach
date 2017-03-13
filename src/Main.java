@@ -15,7 +15,12 @@ public class Main {
 	public static void main(String args[]){
 		
 		if(args[0].equals("-p")){
-			SafeProject(new File(args[1]));
+			if(args[2].equals("--f")){
+				SafeProject(new File(args[1]),args[3]);
+			}
+			else{
+				SafeProject(new File(args[1]),null);
+			}
 		}
 		else if(args[0].equals("-s")){
 			SafeSmali(new File(args[1]));
@@ -39,7 +44,7 @@ public class Main {
 		helper.writeSource();
 	}
 
-	public static void SafeProject(File projectDir){
+	public static void SafeProject(File projectDir,String filter){
 		File maniFile = new File(projectDir.toString() + "\\AndroidManifest.xml");
 		if(!maniFile.exists()){
 			System.out.println("[*SafeProjectError]AndroidManifest.xml is not found");
@@ -55,22 +60,31 @@ public class Main {
 			System.out.println("[*SafeProjectError]Files is null");
 			return;
 		}
-		
 		for(File file : files){
 			SmaliClass cls = SmaliUtils.PraseClass(file);
-			if(cls == null){
+			if(cls == null || cls.isAbstract() || cls.isInterface() || cls.toString().indexOf("$") != -1){
 				continue;
 			}
 			if(cls.toString().startsWith("Landroid")){
 				continue;
 			}
-			SmaliClass.ClassTable.add(cls);
-			System.out.println("[I:ChangeSmali]: " + cls.toString());
-			ChangeSmali(cls);
 			String className = cls.toString();
 			className = className.startsWith("L") ? className.substring(1,className.length()-1) : className;
 			className = className.endsWith(";") ? className.substring(0,className.length()-1) : className;
 			className = className.replace("/",".");
+			if(filter != null){
+				if(className.indexOf(filter) == -1){
+					if(mainClassName.equals(className)){
+						SmaliClass.ClassTable.add(cls);
+						AddClinit(cls);
+						cls.saveChange();
+					}
+					continue;
+				}
+			}
+			SmaliClass.ClassTable.add(cls);
+			System.out.println("[I:ChangeSmali]: " + cls.toString());
+			ChangeSmali(cls);
 			if(mainClassName.equals(className)){
 				AddClinit(cls);
 			}

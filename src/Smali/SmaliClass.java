@@ -202,7 +202,7 @@ public class SmaliClass extends SmaliObject{
 		if(method == null){
 			return -1;
 		}
-		method.setLineInFile(codeLines.size()+2);
+		method.setLineInFile(getCodes().size()+2);
 		StringBuilder builder = new StringBuilder();
 		ArrayList<String> codeLines = getCodes();
 		codeLines.add("");
@@ -297,4 +297,17 @@ public class SmaliClass extends SmaliObject{
 		return null;
 	}
 
+	public boolean isInterface(){
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_INTERFACE) != -1){
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isAbstract(){
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_ABSTRACT) != -1){
+			return true;
+		}
+		return false;
+	}
 }

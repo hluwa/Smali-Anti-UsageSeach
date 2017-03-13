@@ -41,8 +41,15 @@ public class NativeMethod {
 		this.code = code;
 	}
 	public static NativeMethod smaliMethod2NativeMethod(SmaliMethod srcSmaliMethod,String navtiveMethodName){
+		String clsName = srcSmaliMethod.getSuperClassName();
+		if(clsName.startsWith("L")){
+			clsName = clsName.substring(1, clsName.length()-1);
+		}
+		if(clsName.endsWith(";")){
+			clsName = clsName.substring(0,clsName.length()-1);
+		}
 		StringBuilder args = new StringBuilder("JNIEnv *env, jobject obj");
-		StringBuilder codes = new StringBuilder("    jclass cls = env->GetObjectClass(obj);\r\n");
+		StringBuilder codes = new StringBuilder("    jclass cls = env->FindClass(\"" + clsName + "\");\r\n");
 		String isStatic = "";
 		String classId = "obj";
 		StringBuilder callBackArgs = new StringBuilder();
