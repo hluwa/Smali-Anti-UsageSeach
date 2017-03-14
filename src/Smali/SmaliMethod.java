@@ -61,10 +61,10 @@ public class SmaliMethod extends SmaliObject{
 	}
 	
 	public boolean isSynthetic(){
-		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_SYNTHETIC) != -1){
-			return true;
+		if(getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_SYNTHETIC) == -1  && getAttributes().indexOf(ModifierAttribute.ATTRIBUTE_DECLARED_SYNCHRONIZED) == -1){
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	public boolean isNative(){

@@ -32,6 +32,7 @@ public class SmaliModifier {
 		public static final ModifierAttribute ATTRIBUTE_STATIC = new ModifierAttribute("static");;
 		public static final ModifierAttribute ATTRIBUTE_FINAL = new ModifierAttribute("final"); 
 		public static final ModifierAttribute ATTRIBUTE_SYNTHETIC = new ModifierAttribute("synthetic");
+		public static final ModifierAttribute ATTRIBUTE_DECLARED_SYNCHRONIZED = new ModifierAttribute("declared-synchronized");
 		public static final ModifierAttribute ATTRIBUTE_NATIVE = new ModifierAttribute("native");
 		public static final ModifierAttribute ATTRIBUTE_CONSTRUCTOR = new ModifierAttribute("constructor");
 		public static final ModifierAttribute ATTRIBUTE_INTERFACE = new ModifierAttribute("interface");
@@ -57,6 +58,9 @@ public class SmaliModifier {
 			}
 			else if(text.endsWith(ATTRIBUTE_ABSTRACT.getModifierText())){
 				return ATTRIBUTE_ABSTRACT;
+			}
+			else if(text.endsWith(ATTRIBUTE_DECLARED_SYNCHRONIZED.getModifierText())){
+				return ATTRIBUTE_DECLARED_SYNCHRONIZED;
 			}
 			return new ModifierAttribute(text);
 		}

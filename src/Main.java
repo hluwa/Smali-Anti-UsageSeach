@@ -15,7 +15,7 @@ public class Main {
 	public static void main(String args[]){
 		
 		if(args[0].equals("-p")){
-			if(args[2].equals("--f")){
+			if(args.length>= 4 &&  args[2].equals("--f")){
 				SafeProject(new File(args[1]),args[3]);
 			}
 			else{
@@ -104,7 +104,7 @@ public class Main {
 		for(int i = 0 ;i < smaliMethods.size() ; i++){
 			SmaliMethod method = smaliMethods.get(i);
 			String srcName = method.getMethodName();
-			if(method.isNative() || method.isSynthetic()){
+			if(method.isNative() || method.isSynthetic() || method.isFinal()){
 				continue;
 			}
 			//跳过构造器和静态代码块
