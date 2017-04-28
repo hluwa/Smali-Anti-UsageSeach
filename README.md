@@ -5,6 +5,9 @@
 利用native层回调java层方法来使大部分工具的交叉引用查找失效
 此工具用于自动化修改smali文件和生成cpp文件(待实现自动编译)
 
+(这里的smali框架有的地方写的不好，上传太麻烦了，移步https://github.com/Hoimk/Smali-RestoreString)
+
+
 ## 使用方法
 1. 使用apktool d 反编译apk
 2. 运行java -jar smalisafe.jar "要处理的smali文件名"
